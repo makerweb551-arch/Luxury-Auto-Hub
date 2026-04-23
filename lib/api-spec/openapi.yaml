@@ -3,34 +3,346 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Auto List Bahrain API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
-    description: Health operations
+  - name: cars
+  - name: marketplace
+  - name: inquiries
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
           content:
             application/json:
+              schema: { $ref: "#/components/schemas/HealthStatus" }
+  /cars:
+    get:
+      operationId: listCars
+      tags: [cars]
+      summary: List cars with filters
+      parameters:
+        - in: query
+          name: q
+          schema: { type: string }
+        - in: query
+          name: make
+          schema: { type: string }
+        - in: query
+          name: bodyType
+          schema: { type: string }
+        - in: query
+          name: fuel
+          schema: { type: string }
+        - in: query
+          name: transmission
+          schema: { type: string }
+        - in: query
+          name: condition
+          schema: { type: string, enum: [new, used] }
+        - in: query
+          name: minPrice
+          schema: { type: number }
+        - in: query
+          name: maxPrice
+          schema: { type: number }
+        - in: query
+          name: minYear
+          schema: { type: integer }
+        - in: query
+          name: maxYear
+          schema: { type: integer }
+        - in: query
+          name: sort
+          schema: { type: string, enum: [newest, price_asc, price_desc, year_desc, mileage_asc] }
+        - in: query
+          name: limit
+          schema: { type: integer, default: 24 }
+        - in: query
+          name: offset
+          schema: { type: integer, default: 0 }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
               schema:
-                $ref: "#/components/schemas/HealthStatus"
+                type: object
+                required: [items, total]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/Car" }
+                  total: { type: integer }
+    post:
+      operationId: createCar
+      tags: [cars]
+      summary: Create a car listing
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CarInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Car" }
+  /cars/{id}:
+    get:
+      operationId: getCar
+      tags: [cars]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Car" }
+        "404":
+          description: Not found
+  /cars/{id}/similar:
+    get:
+      operationId: getSimilarCars
+      tags: [cars]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Car" }
+  /cars/featured:
+    get:
+      operationId: getFeaturedCars
+      tags: [cars, marketplace]
+      summary: Featured / hero listings
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Car" }
+  /cars/recent:
+    get:
+      operationId: getRecentCars
+      tags: [cars, marketplace]
+      summary: Most recently listed cars
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer, default: 8 }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Car" }
+  /marketplace/summary:
+    get:
+      operationId: getMarketplaceSummary
+      tags: [marketplace]
+      summary: Aggregate marketplace stats
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MarketplaceSummary" }
+  /marketplace/makes:
+    get:
+      operationId: getMakes
+      tags: [marketplace]
+      summary: List of makes with counts
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/MakeCount" }
+  /marketplace/body-types:
+    get:
+      operationId: getBodyTypes
+      tags: [marketplace]
+      summary: List of body types with counts
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/BodyTypeCount" }
+  /inquiries:
+    post:
+      operationId: createInquiry
+      tags: [inquiries]
+      summary: Send a buyer inquiry to a seller
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/InquiryInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Inquiry" }
 components:
   schemas:
     HealthStatus:
       type: object
+      required: [status]
       properties:
-        status:
-          type: string
+        status: { type: string }
+    Car:
+      type: object
       required:
-        - status
-
+        - id
+        - make
+        - model
+        - year
+        - priceBhd
+        - mileageKm
+        - fuel
+        - transmission
+        - bodyType
+        - color
+        - condition
+        - location
+        - sellerName
+        - sellerPhone
+        - description
+        - images
+        - featured
+        - createdAt
+      properties:
+        id: { type: integer }
+        make: { type: string }
+        model: { type: string }
+        trim: { type: string, nullable: true }
+        year: { type: integer }
+        priceBhd: { type: number }
+        mileageKm: { type: integer }
+        fuel: { type: string, enum: [petrol, diesel, hybrid, electric] }
+        transmission: { type: string, enum: [automatic, manual] }
+        bodyType:
+          type: string
+          enum: [sedan, suv, coupe, hatchback, convertible, pickup, van, wagon]
+        color: { type: string }
+        condition: { type: string, enum: [new, used] }
+        location: { type: string }
+        sellerName: { type: string }
+        sellerPhone: { type: string }
+        description: { type: string }
+        images:
+          type: array
+          items: { type: string }
+        featured: { type: boolean }
+        createdAt: { type: string, format: date-time }
+    CarInput:
+      type: object
+      required:
+        - make
+        - model
+        - year
+        - priceBhd
+        - mileageKm
+        - fuel
+        - transmission
+        - bodyType
+        - color
+        - condition
+        - location
+        - sellerName
+        - sellerPhone
+        - description
+        - images
+      properties:
+        make: { type: string }
+        model: { type: string }
+        trim: { type: string, nullable: true }
+        year: { type: integer }
+        priceBhd: { type: number }
+        mileageKm: { type: integer }
+        fuel: { type: string, enum: [petrol, diesel, hybrid, electric] }
+        transmission: { type: string, enum: [automatic, manual] }
+        bodyType:
+          type: string
+          enum: [sedan, suv, coupe, hatchback, convertible, pickup, van, wagon]
+        color: { type: string }
+        condition: { type: string, enum: [new, used] }
+        location: { type: string }
+        sellerName: { type: string }
+        sellerPhone: { type: string }
+        description: { type: string }
+        images:
+          type: array
+          items: { type: string }
+    MarketplaceSummary:
+      type: object
+      required: [totalListings, averagePriceBhd, newCount, usedCount, makes]
+      properties:
+        totalListings: { type: integer }
+        averagePriceBhd: { type: number }
+        newCount: { type: integer }
+        usedCount: { type: integer }
+        makes: { type: integer }
+    MakeCount:
+      type: object
+      required: [make, count]
+      properties:
+        make: { type: string }
+        count: { type: integer }
+    BodyTypeCount:
+      type: object
+      required: [bodyType, count]
+      properties:
+        bodyType: { type: string }
+        count: { type: integer }
+    Inquiry:
+      type: object
+      required: [id, carId, name, phone, message, createdAt]
+      properties:
+        id: { type: integer }
+        carId: { type: integer }
+        name: { type: string }
+        phone: { type: string }
+        email: { type: string, nullable: true }
+        message: { type: string }
+        createdAt: { type: string, format: date-time }
+    InquiryInput:
+      type: object
+      required: [carId, name, phone, message]
+      properties:
+        carId: { type: integer }
+        name: { type: string }
+        phone: { type: string }
+        email: { type: string, nullable: true }
+        message: { type: string }

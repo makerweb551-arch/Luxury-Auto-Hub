@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Auto List Bahrain"
+version = "1.0.0"
+id = "artifacts/auto-list-bahrain"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19436
+
+[services.development]
+run = "pnpm --filter @workspace/auto-list-bahrain run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/auto-list-bahrain", "run", "build" ]
+publicDir = "artifacts/auto-list-bahrain/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19436"
+BASE_PATH = "/"

@@ -1,8 +1,8 @@
-# Workspace
+# Auto List Bahrain
 
 ## Overview
 
-pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
+A high-end automotive marketplace for the Kingdom of Bahrain. Buyers browse luxury, sports, family, and electric vehicles; sellers list their cars in Bahraini Dinar (BHD).
 
 ## Stack
 
@@ -14,14 +14,28 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **Database**: PostgreSQL + Drizzle ORM
 - **Validation**: Zod (`zod/v4`), `drizzle-zod`
 - **API codegen**: Orval (from OpenAPI spec)
-- **Build**: esbuild (CJS bundle)
+- **Frontend**: React + Vite + Tailwind + shadcn/ui + framer-motion + wouter
+
+## Artifacts
+
+- `artifacts/auto-list-bahrain` — main marketplace web app (`/`)
+- `artifacts/api-server` — Express API at `/api`
+
+## Domain Model
+
+- `cars` — listings with make, model, trim, year, priceBhd, mileageKm, fuel, transmission, bodyType, color, condition (new|used), location, seller info, description, images[], featured.
+- `inquiries` — buyer messages tied to a car.
+
+## Pages
+
+- `/` — Home (hero + featured + market stats + browse-by-make/body-type + recent)
+- `/listings` — Filterable browse with sort & pagination
+- `/listings/:id` — Detail with gallery, specs, similar cars, inquiry form
+- `/sell` — List your car form
 
 ## Key Commands
 
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- `pnpm --filter @workspace/api-server run dev` — run API server locally
-
-See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.
+- `pnpm run typecheck` — full typecheck
+- `pnpm --filter @workspace/api-spec run codegen` — regenerate API client/zod
+- `pnpm --filter @workspace/db run push` — push DB schema
+- `pnpm --filter @workspace/scripts run seed-cars` — re-seed sample listings
